@@ -1,0 +1,22 @@
+{
+    "name": "nicvac-teach Java Codespace",
+
+	//Se modifico i file prima del commit automatico (aggiunta pulsante Github su Readme.md) => necessario un merge.
+	"postCreateCommand": "git config pull.rebase false",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+			}
+			,
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+                "vscjava.vscode-java-pack"
+			]
+		}
+	}
+
+}
