@@ -1,131 +1,117 @@
-# Costruiamo una Pila (Stack) in Java
+# Costruiamo una Coda (Queue) in Java
 
-Costruiamo passo dopo passo una struttura dati dinamica: una pila generica basata su lista concatenata. La pila è una delle strutture più eleganti dell'informatica: con una sola regola — **l'ultimo che entra è il primo che esce (LIFO)** — risolve una vasta gamma di problemi in modo molto elegante.
+Costruiamo passo dopo passo una struttura dati dinamica: una coda generica basata su lista concatenata. La coda è una delle strutture più intuitive dell'informatica: con una sola regola — **il primo che entra è il primo che esce (FIFO)** — modella in modo elegante tutte le situazioni in cui bisogna rispettare un ordine di arrivo.
 
 ---
 
-## Cos'è una Pila?
+## Cos'è una Coda?
 
-Una **pila** (in inglese **stack**) è una struttura dati in cui gli elementi si aggiungono e si rimuovono sempre dalla stessa estremità, chiamata **cima** (top).
+Una **coda** (in inglese **queue**) è una struttura dati in cui gli elementi si aggiungono da un'estremità (la **fine**) e si rimuovono dall'estremità opposta (la **testa**).
 
-Pensala come una pila di piatti: puoi appoggiare un piatto solo in cima, e puoi togliere solo quello in cima. Non puoi estrarre un piatto dal mezzo senza far crollare tutto.
+Pensala come la fila alla cassa del supermercato: chi arriva si mette in fondo, chi è in testa viene servito per primo. Nessuno può "passare avanti" e nessuno può uscire dal mezzo.
 
 ```
-         ┌──────────┐
- top ──▶ │  Piatto  │ ← ultimo arrivato, primo a uscire
-         ├──────────┤
-         │  Piatto  │
-         ├──────────┤
-         │  Piatto  │
-         ├──────────┤
-         │  Piatto  │ ← primo arrivato, ultimo a uscire
-         └──────────┘
+       esce                                                     entra
+        ▲                                                         │
+        │                                                         ▼
+     ┌──────┐    ┌──────┐    ┌──────┐    ┌──────┐    ┌──────┐
+     │ Anna │    │ Bea  │    │ Carlo│    │ Dario│    │ Elena│
+     └──────┘    └──────┘    └──────┘    └──────┘    └──────┘
+       testa                                            fine
+   (prima ad uscire)                              (ultima ad entrare)
 ```
 
-### La regola LIFO
+### La regola FIFO
 
-**LIFO** = Last In, First Out (l'ultimo che entra è il primo che esce).
+**FIFO** = First In, First Out (il primo che entra è il primo che esce).
 
 Le operazioni fondamentali sono solo due:
-- **push(dato)**: metti un elemento in cima
-- **pop()**: togli e restituisci l'elemento in cima
+- **enqueue(dato)**: aggiungi un elemento alla fine della coda
+- **dequeue()**: togli e restituisci l'elemento in testa
 
 A queste si aggiungono operazioni di supporto:
-- **peek()**: guarda l'elemento in cima senza toglierlo
-- **isEmpty()**: la pila è vuota?
+- **peek()**: guarda l'elemento in testa senza toglierlo
+- **isEmpty()**: la coda è vuota?
 - **size()**: quanti elementi ci sono?
+
+> **Differenza chiave con la Pila:** nella pila si entra ed esce dalla stessa estremità (LIFO), nella coda si entra da una parte ed esce dall'altra (FIFO).
 
 ### Perché è utile?
 
-La pila è la struttura giusta ogni volta che devi **tornare indietro** sui tuoi passi:
+La coda è la struttura giusta ogni volta che bisogna **rispettare l'ordine di arrivo**:
 
-| Problema | Perché serve la pila |
+| Problema | Perché serve la coda |
 |----------|---------------------|
-| Annulla/Ripristina (Ctrl+Z) | Ogni azione viene impilata; annullare = pop |
-| Valutazione di espressioni matematiche | Gli operandi si impilano, gli operatori li combinano |
-| Controllo parentesi bilanciate | Si impila ogni parentesi aperta, si scarica con la chiusa |
-| Chiamate di funzione (call stack) | Ogni chiamata si impila, il return fa pop |
+| Stampante condivisa | I documenti vengono stampati nell'ordine in cui sono stati inviati |
+| Scheduler dei processi | Il sistema operativo serve i processi in ordine di arrivo |
+| Messaggistica (WhatsApp, email) | I messaggi vengono consegnati nell'ordine di invio |
+| Visita in ampiezza di un grafo (BFS) | Si esplorano i nodi nell'ordine in cui vengono scoperti |
+| Buffer dati (rete, audio, video) | I pacchetti vengono consumati nell'ordine in cui arrivano |
 
-### Esempio: il controllore di parentesi
+### Esempio: la coda di stampa
 
-Immagina di dover verificare se una stringa come `{[()]}` ha le parentesi bilanciate, cioè ogni parentesi aperta ha la sua corrispondente chiusa, nel giusto ordine.
-
-**Algoritmo con la pila:**
-
-1. Scorri la stringa carattere per carattere
-2. Se trovi una parentesi **aperta** (`(`, `[`, `{`): fai **push** sulla pila
-3. Se trovi una parentesi **chiusa** (`)`, `]`, `}`):
-   - Se la pila è vuota → **sbilanciata** (chiusa senza aperta)
-   - Fai **pop**: se la parentesi aperta estratta non corrisponde → **sbilanciata**
-4. Alla fine: se la pila è vuota → **bilanciata**, altrimenti → **sbilanciata**
-
-**Esempio passo-passo** con la stringa `{[()]}`:
+Immagina una stampante d'ufficio con tre persone che inviano un documento:
 
 ```
-Carattere    Azione          Stato della pila
-─────────    ──────          ────────────────
-   {         push '{'        { 
-   [         push '['        { [
-   (         push '('        { [ (
-   )         pop → '(' ✓     { [
-   ]         pop → '[' ✓     {
-   }         pop → '{' ✓     (vuota)
-                              
-   Fine stringa, pila vuota → ✅ BILANCIATA
+Tempo  Azione                          Stato della coda (testa → fine)
+─────  ──────                          ───────────────────────────────
+ t1    Anna invia "report.pdf"         report.pdf
+ t2    Bea invia "fattura.pdf"         report.pdf, fattura.pdf
+ t3    Stampante prende il prossimo    fattura.pdf            → stampa report.pdf
+ t4    Carlo invia "contratto.pdf"     fattura.pdf, contratto.pdf
+ t5    Stampante prende il prossimo    contratto.pdf          → stampa fattura.pdf
+ t6    Stampante prende il prossimo    (vuota)                → stampa contratto.pdf
 ```
 
-**Esempio con stringa sbilanciata** `{[(])}`:
-
-```
-Carattere    Azione          Stato della pila
-─────────    ──────          ────────────────
-   {         push '{'        {
-   [         push '['        { [
-   (         push '('        { [ (
-   ]         pop → '(' ✗     '(' non corrisponde a ']'
-                              
-   → ❌ SBILANCIATA
-```
-
-Questo è esattamente il tipo di problema che senza la pila sarebbe complicato da risolvere, e con la pila diventa lineare e pulito.
+Anche se Carlo ha inviato il suo documento **prima** che la stampante finisse il primo lavoro, il suo file viene stampato per ultimo: **rispetto rigoroso dell'ordine di arrivo**. Questo è esattamente ciò che fa una coda.
 
 ---
 
-## Implementazione: la Pila basata su Lista Concatenata
+## Implementazione: la Coda basata su Lista Concatenata
 
-Internamente la nostra pila usa una lista concatenata. La **cima della pila è la testa della lista**: così sia push che pop costano **O(1)**, perché operano sempre e solo sul primo nodo.
+Internamente la nostra coda usa una lista concatenata. A differenza della pila, abbiamo bisogno di **due puntatori**:
+
+- **`head`** punta alla **testa** della coda (il primo elemento, quello che uscirà)
+- **`tail`** punta alla **fine** della coda (l'ultimo elemento inserito)
+
+Perché due puntatori? Se avessimo solo `head`, per inserire in fondo dovremmo scorrere tutta la lista (operazione O(n)). Con `tail` che punta sempre all'ultimo nodo, possiamo inserire in fondo in tempo costante **O(1)**.
+
+I nodi della lista puntano sempre **dalla testa verso la fine**: questo è importante perché vogliamo che `dequeue` (rimozione dalla testa) sia immediato.
 
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                        fondo
-```
-
-Push di D:
-```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   D   │ NEXT  │────▶│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                                               fondo
+      head                                                tail
+       │                                                   │
+       ▼                                                   ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   A   │ NEXT  │───▶│   B   │ NEXT  │───▶│   C   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
+    TESTA                                       FINE
+   (esce)                                      (entra)
 ```
 
-Pop (restituisce D):
+Enqueue di D (si attacca dopo `tail`, e `tail` si sposta sul nuovo nodo):
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                        fondo
+      head                                                                   tail
+       │                                                                      │
+       ▼                                                                      ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   A   │ NEXT  │───▶│   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
+    TESTA                                                            FINE
 ```
+
+Dequeue (restituisce A, e `head` avanza al nodo successivo):
+```
+      head                                                tail
+       │                                                   │
+       ▼                                                   ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
+    TESTA                                       FINE
+```
+
+> **Attenzione ai casi limite!** Quando la coda è vuota, **sia `head` che `tail` sono `null`**. Quando inseriamo un nuovo elemento in una coda vuota, dobbiamo far puntare entrambi all'unico elemento ora presente. Quando rimuoviamo l'unico elemento presente nella coda, dobbiamo riportare entrambi a `null`. Vedremo questi dettagli nei blocchi 3 e 4.
 
 ---
 
@@ -133,7 +119,7 @@ Pop (restituisce D):
 
 ### Obiettivo
 
-Creare la classe `Nodo<T>` che rappresenta un singolo elemento della pila. È la stessa identica classe usata per la lista concatenata.
+Creare la classe `Nodo<T>` che rappresenta un singolo elemento della coda. È la stessa identica classe usata per la lista concatenata e per la pila.
 
 ### Ingredienti
 
@@ -174,39 +160,42 @@ public class Nodo<T> {
 
 ---
 
-## Blocco 1 — La classe Pila (struttura base)
+## Blocco 1 — La classe Coda (struttura base)
 
 ### Obiettivo
 
-Creare la classe `Pila<T>` con l'attributo `top` che punta al nodo in cima.
+Creare la classe `Coda<T>` con i due attributi `head` e `tail` che puntano rispettivamente alla testa e alla fine della coda.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
-| `class Pila<T>` | Classe generica che gestisce la pila |
-| `Nodo<T> top` | Riferimento al nodo in cima (o `null` se la pila è vuota) |
-| Costruttore | Inizializza `top` a `null` (pila vuota) |
+| `class Coda<T>` | Classe generica che gestisce la coda |
+| `Nodo<T> head` | Riferimento al nodo in testa, da cui si esce (o `null` se la coda è vuota) |
+| `Nodo<T> tail` | Riferimento al nodo in fondo, dove si entra (o `null` se la coda è vuota) |
+| Costruttore | Inizializza `head` e `tail` a `null` (coda vuota) |
 
 ### Come combinarli
 
 1. Dichiara la classe con il parametro generico `<T>`
-2. Dichiara l'attributo privato `top` di tipo `Nodo<T>`
-3. Nel costruttore, imposta `top` a `null`
+2. Dichiara gli attributi privati `head` e `tail`, entrambi di tipo `Nodo<T>`
+3. Nel costruttore, imposta sia `head` che `tail` a `null`
 
 ### Esercizio
 
-Crea la classe `Pila<T>` nel file `Pila.java` con la struttura base.
+Crea la classe `Coda<T>` nel file `Coda.java` con la struttura base.
 
 <details>
 <summary>Soluzione</summary>
 
 ```java
-public class Pila<T> {
-    private Nodo<T> top;
+public class Coda<T> {
+    private Nodo<T> head;
+    private Nodo<T> tail;
 
-    public Pila() {
-        this.top = null;
+    public Coda() {
+        this.head = null;
+        this.tail = null;
     }
 }
 ```
@@ -219,29 +208,29 @@ public class Pila<T> {
 
 ### Obiettivo
 
-Sapere se la pila è vuota.
+Sapere se la coda è vuota.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
-| `top` | Se è `null`, la pila è vuota |
+| `head` | Se è `null`, la coda è vuota |
 | `return` | Restituisce `true` o `false` |
 
 ### Come combinarli
 
-La pila è vuota quando `top` non punta a nessun nodo. Basta verificare se `top == null`.
+La coda è vuota quando non c'è nessun nodo. Basta controllare se `head == null` (quando `head` è `null`, anche `tail` lo è — manterremo questo invariante in tutte le operazioni).
 
 ### Esercizio
 
-Implementa il metodo `boolean isEmpty()` nella classe `Pila<T>`.
+Implementa il metodo `boolean isEmpty()` nella classe `Coda<T>`.
 
 <details>
 <summary>Soluzione</summary>
 
 ```java
 public boolean isEmpty() {
-    return top == null;
+    return head == null;
 }
 ```
 
@@ -249,66 +238,77 @@ public boolean isEmpty() {
 
 ---
 
-## Blocco 3 — push(T dato)
+## Blocco 3 — enqueue(T dato)
 
 ### Obiettivo
 
-Inserire un elemento in cima alla pila.
+Inserire un elemento alla **fine** della coda.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
 | `new Nodo<>(dato)` | Creare un nuovo nodo con il dato ricevuto |
-| `nuovoNodo.next` | Deve puntare all'attuale cima |
-| `top` | Deve essere aggiornato per puntare al nuovo nodo |
+| `isEmpty()` | Distinguere il caso "coda vuota" dal caso "coda con elementi" |
+| `tail.next` | Collegare il nuovo nodo dopo l'attuale ultimo nodo |
+| `tail` | Aggiornarlo per puntare al nuovo nodo (che è il nuovo ultimo) |
+| `head` | Se la coda era vuota, anche `head` deve puntare al nuovo nodo |
 
 ### Come combinarli
 
-Push equivale a **inserire in testa** nella lista concatenata:
+Enqueue equivale a **inserire in fondo** alla lista concatenata. Bisogna distinguere due casi:
 
+**Caso 1 — Coda vuota:** non c'è nessun nodo. Il nuovo nodo diventa contemporaneamente testa e fine.
+
+**Caso 2 — Coda non vuota:** il nuovo nodo va attaccato dopo l'attuale `tail`, e poi `tail` deve essere aggiornato per puntare al nuovo nodo.
+
+Pseudocodice:
 1. Crea un nuovo nodo con il dato
-2. Il `next` del nuovo nodo punta all'attuale `top`
-3. `top` diventa il nuovo nodo
-
-Nota: funziona anche se la pila è vuota (in quel caso `top` è `null`, e il nuovo nodo avrà `next = null`, che è corretto).
+2. Se `isEmpty()`: imposta `head = nuovoNodo` e `tail = nuovoNodo`
+3. Altrimenti: imposta `tail.next = nuovoNodo`, poi `tail = nuovoNodo`
 
 Prima:
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                        fondo
+      head                                                tail
+       │                                                   │
+       ▼                                                   ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   A   │ NEXT  │───▶│   B   │ NEXT  │───▶│   C   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
 ```
 
-Creo `nuovoNodo = new Nodo<>(D)` e collego:
+Creo `nuovoNodo = new Nodo<>(D)`, poi `tail.next = nuovoNodo` e `tail = nuovoNodo`:
 
 Dopo:
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   D   │ NEXT  │────▶│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                                               fondo
+      head                                                                   tail
+       │                                                                      │
+       ▼                                                                      ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   A   │ NEXT  │───▶│   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
 ```
+
+> **Errore tipico:** dimenticare di aggiornare `head` quando la coda era vuota. Senza quell'aggiornamento, dopo il primo `enqueue` la coda risulterebbe ancora vuota a chiunque guardi `head`!
 
 ### Esercizio
 
-Implementa il metodo `void push(T dato)` nella classe `Pila<T>`.
+Implementa il metodo `void enqueue(T dato)` nella classe `Coda<T>`.
 
 <details>
 <summary>Soluzione</summary>
 
 ```java
-public void push(T dato) {
+public void enqueue(T dato) {
     Nodo<T> nuovoNodo = new Nodo<>(dato);
-    nuovoNodo.next = top;
-    top = nuovoNodo;
+
+    if (isEmpty()) {
+        head = nuovoNodo;
+        tail = nuovoNodo;
+    } else {
+        tail.next = nuovoNodo;
+        tail = nuovoNodo;
+    }
 }
 ```
 
@@ -316,67 +316,89 @@ public void push(T dato) {
 
 ---
 
-## Blocco 4 — pop()
+## Blocco 4 — dequeue()
 
 ### Obiettivo
 
-Rimuovere e restituire l'elemento in cima alla pila.
+Rimuovere e restituire l'elemento in **testa** alla coda.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
-| `isEmpty()` | Verificare che la pila non sia vuota prima di operare |
-| `top.dato` | Il valore da restituire |
-| `top = top.next` | Spostare la cima al nodo successivo |
-| `throw` | Lanciare un'eccezione se la pila è vuota |
+| `isEmpty()` | Verificare che la coda non sia vuota prima di operare |
+| `head.dato` | Il valore da restituire |
+| `head = head.next` | Spostare la testa al nodo successivo |
+| `tail = null` | Se dopo lo spostamento la coda è vuota, azzerare anche `tail` |
+| `throw` | Lanciare un'eccezione se la coda è vuota |
 
 ### Come combinarli
 
-1. Controlla se la pila è vuota: se sì, lancia un'eccezione (non puoi fare pop su una pila vuota)
-2. Salva il dato del nodo in cima
-3. Sposta `top` al nodo successivo (il vecchio nodo in cima verrà rimosso dal garbage collector)
-4. Restituisci il dato salvato
+1. Controlla se la coda è vuota: se sì, lancia un'eccezione (non puoi fare dequeue su una coda vuota)
+2. Salva il dato del nodo in testa
+3. Sposta `head` al nodo successivo (il vecchio nodo in testa verrà rimosso dal garbage collector)
+4. **Caso limite**: se ora `head` è `null` (avevamo un solo elemento e l'abbiamo tolto), azzera anche `tail`. Senza questa riga, `tail` continuerebbe a puntare a un nodo "fantasma" che non fa più parte della coda!
+5. Restituisci il dato salvato
 
 Prima:
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   D   │ NEXT  │────▶│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                                               fondo
+      head                                                                   tail
+       │                                                                      │
+       ▼                                                                      ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   A   │ NEXT  │───▶│   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
 ```
 
-Salvo `dato = D`, poi `top = top.next`:
+Salvo `dato = A`, poi `head = head.next`:
 
-Dopo (restituisce D):
+Dopo (restituisce A):
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                        fondo
+      head                                                tail
+       │                                                   │
+       ▼                                                   ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
+```
+
+Caso limite — coda con un solo elemento:
+```
+   head, tail
+       │
+       ▼
+ ┌───────┬───────┐
+ │   X   │ NULL  │
+ └───────┴───────┘
+```
+
+Dopo `head = head.next` → `head` è `null`, ma `tail` punta ancora al vecchio nodo X! Per questo serve l'`if`:
+
+```
+   head = null
+   tail = null    ✓ ora la coda è davvero vuota
 ```
 
 ### Esercizio
 
-Implementa il metodo `T pop()` nella classe `Pila<T>`. Se la pila è vuota, lancia una `RuntimeException` con messaggio `"Pila vuota"`.
+Implementa il metodo `T dequeue()` nella classe `Coda<T>`. Se la coda è vuota, lancia una `RuntimeException` con messaggio `"Coda vuota"`.
 
 <details>
 <summary>Soluzione</summary>
 
 ```java
-public T pop() {
+public T dequeue() {
     if (isEmpty()) {
-        throw new RuntimeException("Pila vuota");
+        throw new RuntimeException("Coda vuota");
     }
 
-    T dato = top.dato;
-    top = top.next;
+    T dato = head.dato;
+    head = head.next;
+
+    if (head == null) {
+        tail = null;
+    }
+
     return dato;
 }
 ```
@@ -389,39 +411,38 @@ public T pop() {
 
 ### Obiettivo
 
-Guardare l'elemento in cima alla pila **senza rimuoverlo**.
+Guardare l'elemento in testa alla coda **senza rimuoverlo**.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
-| `isEmpty()` | Verificare che la pila non sia vuota |
-| `top.dato` | Il valore da restituire |
-| `throw` | Lanciare un'eccezione se la pila è vuota |
+| `isEmpty()` | Verificare che la coda non sia vuota |
+| `head.dato` | Il valore da restituire |
+| `throw` | Lanciare un'eccezione se la coda è vuota |
 
 ### Come combinarli
 
-È come `pop()`, ma **senza spostare** `top`. Restituisci il dato del nodo in cima e basta.
+È come `dequeue()`, ma **senza spostare** `head`. Restituisci il dato del nodo in testa e basta.
 
-1. Controlla se la pila è vuota: se sì, lancia un'eccezione
-2. Restituisci `top.dato`
+1. Controlla se la coda è vuota: se sì, lancia un'eccezione
+2. Restituisci `head.dato`
 
 ```
-  top
-   │
-   ▼
-┌───────┬───────┐     ┌───────┬───────┐     ┌───────┬───────┐
-│   C   │ NEXT  │────▶│   B   │ NEXT  │────▶│   A   │ NULL  │
-└───────┴───────┘     └───────┴───────┘     └───────┴───────┘
-   cima                                        fondo
-   ▲
-   │
- peek() restituisce C, la pila resta invariata
+      head                                                tail
+       │                                                   │
+       ▼                                                   ▼
+ ┌───────┬───────┐    ┌───────┬───────┐    ┌───────┬───────┐
+ │   B   │ NEXT  │───▶│   C   │ NEXT  │───▶│   D   │ NULL  │
+ └───────┴───────┘    └───────┴───────┘    └───────┴───────┘
+       ▲
+       │
+   peek() restituisce B, la coda resta invariata
 ```
 
 ### Esercizio
 
-Implementa il metodo `T peek()` nella classe `Pila<T>`. Se la pila è vuota, lancia una `RuntimeException` con messaggio `"Pila vuota"`.
+Implementa il metodo `T peek()` nella classe `Coda<T>`. Se la coda è vuota, lancia una `RuntimeException` con messaggio `"Coda vuota"`.
 
 <details>
 <summary>Soluzione</summary>
@@ -429,10 +450,10 @@ Implementa il metodo `T peek()` nella classe `Pila<T>`. Se la pila è vuota, lan
 ```java
 public T peek() {
     if (isEmpty()) {
-        throw new RuntimeException("Pila vuota");
+        throw new RuntimeException("Coda vuota");
     }
 
-    return top.dato;
+    return head.dato;
 }
 ```
 
@@ -444,29 +465,29 @@ public T peek() {
 
 ### Obiettivo
 
-Contare quanti elementi ci sono nella pila.
+Contare quanti elementi ci sono nella coda.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
 | `int contatore` | Una variabile che parte da 0 |
-| `Nodo<T> corrente` | Un riferimento che parte da `top` |
+| `Nodo<T> corrente` | Un riferimento che parte da `head` |
 | `while (corrente != null)` | Ciclo che scorre tutti i nodi |
 | `corrente = corrente.next` | Avanza al nodo successivo |
 
 ### Come combinarli
 
-Devi scorrere tutta la catena di nodi dalla cima al fondo, contando ogni nodo incontrato:
+Devi scorrere tutta la catena di nodi dalla testa alla fine, contando ogni nodo incontrato:
 
 1. Inizializza un contatore a 0
-2. Parti da `top` con un riferimento `corrente`
+2. Parti da `head` con un riferimento `corrente`
 3. Finché `corrente` non è `null`, incrementa il contatore e avanza al nodo successivo
 4. Restituisci il contatore
 
 ### Esercizio
 
-Implementa il metodo `int size()` nella classe `Pila<T>`.
+Implementa il metodo `int size()` nella classe `Coda<T>`.
 
 <details>
 <summary>Soluzione</summary>
@@ -474,7 +495,7 @@ Implementa il metodo `int size()` nella classe `Pila<T>`.
 ```java
 public int size() {
     int contatore = 0;
-    Nodo<T> corrente = top;
+    Nodo<T> corrente = head;
 
     while (corrente != null) {
         contatore++;
@@ -493,30 +514,30 @@ public int size() {
 
 ### Obiettivo
 
-Rappresentare la pila come stringa leggibile, mostrando gli elementi dalla cima al fondo.
+Rappresentare la coda come stringa leggibile, mostrando gli elementi dalla testa alla fine.
 
 ### Ingredienti
 
 | Elemento | Descrizione |
 |----------|-------------|
 | `StringBuilder` | Per costruire la stringa in modo efficiente |
-| `Nodo<T> corrente` | Riferimento che parte da `top` |
+| `Nodo<T> corrente` | Riferimento che parte da `head` |
 | `while (corrente != null)` | Ciclo che scorre tutti i nodi |
 | `@Override` | Sovrascrive il metodo `toString()` di `Object` |
 
 ### Come combinarli
 
-1. Crea un `StringBuilder`
-2. Aggiungi un'intestazione `"[CIMA] "` per rendere chiaro dove inizia la pila
-3. Scorri tutti i nodi da `top` in avanti, aggiungendo per ciascuno il dato seguito da `" → "`
-4. Alla fine della catena aggiungi `"[FONDO]"`
+1. Crea uno `StringBuilder`
+2. Aggiungi un'intestazione `"[TESTA] "` per rendere chiaro da dove si esce
+3. Scorri tutti i nodi da `head` in avanti, aggiungendo per ciascuno il dato seguito da `" → "`
+4. Alla fine della catena aggiungi `"[FINE]"`
 5. Restituisci la stringa
 
-Formato atteso: `[CIMA] D → C → B → A → [FONDO]`
+Formato atteso: `[TESTA] A → B → C → D → [FINE]`
 
 ### Esercizio
 
-Implementa il metodo `toString()` nella classe `Pila<T>`.
+Implementa il metodo `toString()` nella classe `Coda<T>`.
 
 <details>
 <summary>Soluzione</summary>
@@ -525,16 +546,16 @@ Implementa il metodo `toString()` nella classe `Pila<T>`.
 @Override
 public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("[CIMA] ");
+    sb.append("[TESTA] ");
 
-    Nodo<T> corrente = top;
+    Nodo<T> corrente = head;
     while (corrente != null) {
         sb.append(corrente.dato);
         sb.append(" → ");
         corrente = corrente.next;
     }
 
-    sb.append("[FONDO]");
+    sb.append("[FINE]");
     return sb.toString();
 }
 ```
@@ -561,47 +582,60 @@ public class Nodo<T> {
 }
 ```
 
-### Pila.java
+### Coda.java
 
 ```java
-public class Pila<T> {
-    private Nodo<T> top;
+public class Coda<T> {
+    private Nodo<T> head;
+    private Nodo<T> tail;
 
-    public Pila() {
-        this.top = null;
+    public Coda() {
+        this.head = null;
+        this.tail = null;
     }
 
     public boolean isEmpty() {
-        return top == null;
+        return head == null;
     }
 
-    public void push(T dato) {
+    public void enqueue(T dato) {
         Nodo<T> nuovoNodo = new Nodo<>(dato);
-        nuovoNodo.next = top;
-        top = nuovoNodo;
+
+        if (isEmpty()) {
+            head = nuovoNodo;
+            tail = nuovoNodo;
+        } else {
+            tail.next = nuovoNodo;
+            tail = nuovoNodo;
+        }
     }
 
-    public T pop() {
+    public T dequeue() {
         if (isEmpty()) {
-            throw new RuntimeException("Pila vuota");
+            throw new RuntimeException("Coda vuota");
         }
 
-        T dato = top.dato;
-        top = top.next;
+        T dato = head.dato;
+        head = head.next;
+
+        if (head == null) {
+            tail = null;
+        }
+
         return dato;
     }
 
     public T peek() {
         if (isEmpty()) {
-            throw new RuntimeException("Pila vuota");
+            throw new RuntimeException("Coda vuota");
         }
 
-        return top.dato;
+        return head.dato;
     }
 
     public int size() {
         int contatore = 0;
-        Nodo<T> corrente = top;
+        Nodo<T> corrente = head;
 
         while (corrente != null) {
             contatore++;
@@ -614,16 +648,16 @@ public class Pila<T> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[CIMA] ");
+        sb.append("[TESTA] ");
 
-        Nodo<T> corrente = top;
+        Nodo<T> corrente = head;
         while (corrente != null) {
             sb.append(corrente.dato);
             sb.append(" → ");
             corrente = corrente.next;
         }
 
-        sb.append("[FONDO]");
+        sb.append("[FINE]");
         return sb.toString();
     }
 }
@@ -631,76 +665,105 @@ public class Pila<T> {
 
 ---
 
-## Esercizio Finale — Usa la tua Pila!
+## Esercizio Finale — Usa la tua Coda!
 
-### Il controllore di parentesi
+### Il gioco della Patata Bollente
 
-Ora metti alla prova la pila che hai costruito. Implementa un programma che verifica se una stringa ha le parentesi bilanciate. Deve gestire tre tipi di parentesi: tonde `()`, quadre `[]` e graffe `{}`.
+Ora metti alla prova la coda che hai costruito. Implementa una simulazione del classico gioco della **patata bollente**:
+
+> Un gruppo di persone è disposto in cerchio. Si passano una patata bollente di mano in mano. Dopo `K` passaggi, la persona che ha la patata in mano viene **eliminata** ed esce dal cerchio. Il gioco continua finché resta un solo giocatore, che è il **vincitore**.
+
+### Perché serve una coda?
+
+L'idea è semplice ma elegante: rappresentiamo il cerchio di giocatori con una coda.
+
+- **Passare la patata** = togliere il giocatore dalla testa e rimetterlo in fondo (`dequeue` + `enqueue`)
+- **Eliminare un giocatore** = togliere il giocatore dalla testa e **non** rimetterlo in coda (`dequeue` e basta)
+
+Esempio con 5 giocatori `[Anna, Bea, Carlo, Dario, Elena]` e `K = 3`:
+
+```
+Stato iniziale:    [TESTA] Anna → Bea → Carlo → Dario → Elena → [FINE]
+
+Passaggio 1: Anna passa la patata a Bea
+             [TESTA] Bea → Carlo → Dario → Elena → Anna → [FINE]
+
+Passaggio 2: Bea passa la patata a Carlo
+             [TESTA] Carlo → Dario → Elena → Anna → Bea → [FINE]
+
+3° passaggio: Carlo ha la patata → ELIMINATO!
+             [TESTA] Dario → Elena → Anna → Bea → [FINE]
+
+...e così via, finché resta un solo giocatore.
+```
 
 ### Specifiche
 
-1. Crea un metodo `static boolean parentesiBilanciate(String espressione)` in una classe `TestPila`
-2. Usa una `Pila<Character>` per gestire il controllo
-3. Scorri la stringa carattere per carattere:
-   - Se è una parentesi aperta (`(`, `[`, `{`): fai push
-   - Se è una parentesi chiusa (`)`, `]`, `}`): fai pop e verifica che la parentesi aperta corrisponda
-   - Se la pila è vuota quando serve fare pop → sbilanciata
-4. Alla fine, la pila deve essere vuota
-5. Nel `main`, testa con queste stringhe:
-   - `{[()]}` → bilanciata
-   - `{[(])}` → sbilanciata
-   - `((()))` → bilanciata
-   - `(]` → sbilanciata
-   - `{[}` → sbilanciata
-   - stringa vuota `""` → bilanciata
+1. Crea un metodo `static String patataBollente(String[] giocatori, int k)` in una classe `TestCoda`
+2. Crea una `Coda<String>` e inserisci tutti i giocatori con `enqueue`
+3. Finché nella coda c'è più di un giocatore:
+   - Per **k - 1** volte: fai `dequeue` e subito `enqueue` dello stesso elemento (la patata passa di mano)
+   - Alla `k`-esima volta: fai `dequeue` e basta (il giocatore con la patata è eliminato)
+   - Stampa chi è stato eliminato per seguire la simulazione
+4. Restituisci l'unico giocatore rimasto (il vincitore)
+5. Nel `main`, prova con:
+   - `["Anna", "Bea", "Carlo", "Dario", "Elena"]` con `k = 3`
+   - `["Marco", "Luigi", "Sofia", "Giulia"]` con `k = 2`
+   - `["Solo"]` con `k = 5` (un solo giocatore vince a tavolino)
+
+### Suggerimento
+
+Il caso "un solo giocatore" è importante: il `while (coda.size() > 1)` non entra mai nel ciclo, e il programma restituisce subito quel giocatore.
 
 <details>
 <summary>Soluzione</summary>
 
 ```java
-public class TestPila {
+public class TestCoda {
 
-    public static boolean parentesiBilanciate(String espressione) {
-        Pila<Character> pila = new Pila<>();
+    public static String patataBollente(String[] giocatori, int k) {
+        Coda<String> coda = new Coda<>();
 
-        for (int i = 0; i < espressione.length(); i++) {
-            char c = espressione.charAt(i);
-
-            if (c == '(' || c == '[' || c == '{') {
-                pila.push(c);
-            } else if (c == ')' || c == ']' || c == '}') {
-                if (pila.isEmpty()) {
-                    return false;
-                }
-
-                char aperta = pila.pop();
-
-                if (!corrispondono(aperta, c)) {
-                    return false;
-                }
-            }
+        for (int i = 0; i < giocatori.length; i++) {
+            coda.enqueue(giocatori[i]);
         }
 
-        return pila.isEmpty();
-    }
+        System.out.println("Inizio gioco: " + coda);
 
-    private static boolean corrispondono(char aperta, char chiusa) {
-        return (aperta == '(' && chiusa == ')')
-            || (aperta == '[' && chiusa == ']')
-            || (aperta == '{' && chiusa == '}');
+        while (coda.size() > 1) {
+            for (int i = 0; i < k - 1; i++) {
+                String giocatore = coda.dequeue();
+                coda.enqueue(giocatore);
+            }
+
+            String eliminato = coda.dequeue();
+            System.out.println("Eliminato: " + eliminato + "  →  " + coda);
+        }
+
+        return coda.peek();
     }
 
     public static void main(String[] args) {
-        String[] test = {"{[()]}", "{[(])}", "((()))", "(]", "{[}", ""};
-        boolean[] atteso = {true, false, true, false, false, true};
+        String[] gruppo1 = {"Anna", "Bea", "Carlo", "Dario", "Elena"};
+        String vincitore1 = patataBollente(gruppo1, 3);
+        System.out.println("Vincitore: " + vincitore1);
+        System.out.println();
 
-        for (int i = 0; i < test.length; i++) {
-            boolean risultato = parentesiBilanciate(test[i]);
-            String esito = (risultato == atteso[i]) ? "✓" : "✗";
-            System.out.println(esito + " \"" + test[i] + "\" → " + risultato);
-        }
+        String[] gruppo2 = {"Marco", "Luigi", "Sofia", "Giulia"};
+        String vincitore2 = patataBollente(gruppo2, 2);
+        System.out.println("Vincitore: " + vincitore2);
+        System.out.println();
+
+        String[] gruppo3 = {"Solo"};
+        String vincitore3 = patataBollente(gruppo3, 5);
+        System.out.println("Vincitore: " + vincitore3);
     }
 }
 ```
 
 </details>
+
+### Esercizi extra
+
+- **Coda inversa**: scrivi un metodo che restituisce una nuova coda con gli elementi in ordine inverso. Suggerimento: ti servirà... una pila!
+- **Schedulatore round-robin**: simula un sistema operativo che dà 1 secondo di CPU a ogni processo a turno, finché tutti hanno terminato il lavoro richiesto.

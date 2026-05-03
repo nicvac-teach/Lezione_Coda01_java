@@ -1,1 +1,1 @@
-//Implementare qui la classe TestPila, per l'esercizio delle parentesi bilanciate
+//Implementare qui la classe TestCoda, per l'esercizio del gioco della patata bollente
